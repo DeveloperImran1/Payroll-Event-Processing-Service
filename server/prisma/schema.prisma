@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EventType {
+  BANK_ACCOUNT_CHANGE
+  ADDRESS_CHANGE
+  SALARY_CHANGE
+}
+
+enum EventStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+model Event {
+  id            String      @id @default(uuid())
+  employeeId    String
+  eventType     EventType
+  status        EventStatus @default(PENDING)
+  payload       Json
+  failureReason String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("events")
+}

@@ -1,0 +1,19 @@
+{
+  "name": "payroll-event-processing-service",
+  "version": "1.0.0",
+  "description": "Backend Engineering Technical Assignment",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=server",
+    "build:server": "npm run build --workspace=server",
+    "start:server": "npm start --workspace=server"
+  },
+  "devDependencies": {
+    "eslint": "^10.9.0",
+    "prettier": "^3.9.6"
+  }
+}
