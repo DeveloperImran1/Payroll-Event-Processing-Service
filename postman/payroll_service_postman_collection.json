@@ -1,0 +1,199 @@
+{
+	"info": {
+		"_postman_id": "payroll-event-processing-service-api",
+		"name": "Payroll Event Processing Service API",
+		"description": "Production-grade asynchronous payroll event processing service collection with BullMQ, Redis, PostgreSQL, and Express.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Returns active connection health check for Express Server, PostgreSQL DB, and Redis broker."
+			},
+			"response": []
+		},
+		{
+			"name": "1. Submit Bank Account Change Event",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"eventType\": \"BANK_ACCOUNT_CHANGE\",\n  \"employeeId\": \"EMP-001\",\n  \"effectiveDate\": \"2026-09-01\",\n  \"iban\": \"BD1234567890123456\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"events"
+					]
+				},
+				"description": "Enqueues a bank account update event into BullMQ for asynchronous worker processing. Returns 202 Accepted immediately."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Submit Address Change Event",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"eventType\": \"ADDRESS_CHANGE\",\n  \"employeeId\": \"EMP-002\",\n  \"effectiveDate\": \"2026-09-01\",\n  \"street\": \"123 Gulshan Avenue\",\n  \"city\": \"Dhaka\",\n  \"postalCode\": \"1212\",\n  \"country\": \"Bangladesh\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"events"
+					]
+				},
+				"description": "Enqueues an employee address change event."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Submit Salary Change Event",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"eventType\": \"SALARY_CHANGE\",\n  \"employeeId\": \"EMP-003\",\n  \"effectiveDate\": \"2026-09-01\",\n  \"newSalary\": 95000,\n  \"currency\": \"USD\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"events"
+					]
+				},
+				"description": "Enqueues an employee salary adjustment event."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Submit Invalid Event (Validation Error Demo)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"eventType\": \"BANK_ACCOUNT_CHANGE\",\n  \"employeeId\": \"EMP-004\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"events"
+					]
+				},
+				"description": "Demonstrates strict Zod validation error responses (400 Bad Request) when required fields like `iban` or `effectiveDate` are missing."
+			},
+			"response": []
+		},
+		{
+			"name": "5. Get Event by ID (Check Status)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/events/:id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"events",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "PASTE_EVENT_ID_HERE",
+							"description": "UUID of the event returned from POST /events"
+						}
+					]
+				},
+				"description": "Retrieves the current processing state (PENDING, PROCESSING, SUCCESS, FAILED) and failureReason of an event."
+			},
+			"response": []
+		},
+		{
+			"name": "6. Get All Events (Dashboard Feed)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"events"
+					]
+				},
+				"description": "Retrieves all events ordered by creation timestamp."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
+}

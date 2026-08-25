@@ -148,6 +148,29 @@ docker-compose down
 
 ## 8. Local Development & Testing
 
+### Environment Variables Setup
+For local standalone development without Docker, initialize the respective `.env` files:
+
+1. **Backend Server (`server/.env`)**:
+   ```bash
+   cp server/.env.example server/.env
+   ```
+   ```env
+   PORT=5000
+   NODE_ENV=development
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/payroll_db?schema=public"
+   REDIS_HOST=localhost
+   REDIS_PORT=6379
+   ```
+
+2. **Frontend Next.js Client (`client/.env.local`)**:
+   ```bash
+   cp client/.env.example client/.env.local
+   ```
+   ```env
+   NEXT_PUBLIC_BASE_API_URL=http://localhost:5000/api/v1
+   ```
+
 ### Running Tests
 Automated unit and integration test suites are written with **Jest & Supertest**:
 
@@ -157,7 +180,7 @@ npm test
 ```
 
 ### Test Coverage Summary
-- `GET /health` (Deep health check)
+- `GET /health` (Deep health check verifying PostgreSQL and Redis connections)
 - `POST /api/v1/events` (Valid submissions for all 3 event types -> 202 Accepted)
 - `POST /api/v1/events` (Validation errors for missing fields -> 400 Bad Request)
 - `GET /api/v1/events/:id` & `GET /api/v1/events`
@@ -177,7 +200,39 @@ npm test
 | `GET` | `/api/v1/events/:id` | Get event details and processing status | `200 OK` / `404` |
 | `GET` | `/api/v1/events` | Get all events list for dashboard feed | `200 OK` |
 
-> 📁 A ready-to-import Postman Collection is available in [`doc/payroll_service_postman_collection.json`](file:///doc/payroll_service_postman_collection.json).
+> 📁 A ready-to-import Postman Collection is available in [`postman/payroll_service_postman_collection.json`](file:///postman/payroll_service_postman_collection.json).
+
+### Quick cURL Examples
+
+#### 1. Submit Bank Account Change Event
+```bash
+curl -X POST http://localhost:5000/api/v1/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "eventType": "BANK_ACCOUNT_CHANGE",
+    "employeeId": "EMP-101",
+    "effectiveDate": "2026-09-01",
+    "iban": "DE89370400440532013000"
+  }'
+```
+
+#### 2. Submit Salary Change Event
+```bash
+curl -X POST http://localhost:5000/api/v1/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "eventType": "SALARY_CHANGE",
+    "employeeId": "EMP-102",
+    "effectiveDate": "2026-09-01",
+    "newSalary": 92000,
+    "currency": "USD"
+  }'
+```
+
+#### 3. Check Event Processing Status
+```bash
+curl -X GET http://localhost:5000/api/v1/events/<EVENT_UUID>
+```
 
 ---
 
@@ -185,6 +240,6 @@ npm test
 
 The project includes a GitHub Actions workflow configured in [`.github/workflows/ci.yml`](file:///.github/workflows/ci.yml) that:
 1. Spawns automated PostgreSQL 15 and Redis 7 service containers.
-2. Synchronizes database schemas with Prisma.
+2. Synchronizes database schemas with Prisma (`prisma db push --accept-data-loss`).
 3. Executes the full Jest automated test suite.
 4. Compiles and type-checks both Backend and Frontend applications.
