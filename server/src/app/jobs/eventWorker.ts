@@ -3,6 +3,7 @@ import redisConnection from '../../shared/redis';
 import { EVENT_QUEUE_NAME } from './eventQueue';
 import { processPayrollEvent } from './eventProcessor';
 import prisma from '../../shared/prisma';
+import logger from '../../shared/logger';
 
 export const initWorker = () => {
   const worker = new Worker(
@@ -14,17 +15,17 @@ export const initWorker = () => {
     },
     {
       connection: redisConnection,
-      concurrency: 5, // Process up to 5 jobs concurrently
+      concurrency: 5, // Process up to 5 jobs concurrently across workers
     }
   );
 
   worker.on('completed', (job) => {
-    console.log(`✅ [Worker] Job ${job.id} has completed!`);
+    logger.info(`✅ [Worker] Job ${job.id} for event ${job.data?.eventId} completed successfully.`);
   });
 
-  // Listen for jobs that failed ALL attempts (Permanent Failure)
+  // Listen for jobs that failed permanently (after all retries or unrecoverable error)
   worker.on('failed', async (job, err) => {
-    console.error(`❌ [Worker] Job ${job?.id} has permanently failed. Reason: ${err.message}`);
+    logger.error(`❌ [Worker] Job ${job?.id} permanently failed: ${err.message}`);
     
     if (job && job.data && job.data.eventId) {
       try {
@@ -35,19 +36,19 @@ export const initWorker = () => {
             failureReason: err.message,
           },
         });
-        console.log(`[Worker] Updated DB status to FAILED for event ${job.data.eventId}`);
+        logger.info(`[Worker] Updated event ${job.data.eventId} status to FAILED in database.`);
       } catch (dbError) {
-        console.error('[Worker] Failed to update DB status on permanent failure', dbError);
+        logger.error('[Worker] Error updating database status on job failure', dbError);
       }
     }
   });
 
-  // Listen for retryable errors (Temporary Failure)
+  // Listen for transient/retryable worker errors
   worker.on('error', (err) => {
-    console.error(`⚠️ [Worker] Encountered a temporary error:`, err);
+    logger.warn(`⚠️ [Worker] Transient worker warning/error: ${err.message}`);
   });
 
-  console.log(`[Worker] Started listening on queue: ${EVENT_QUEUE_NAME}`);
+  logger.info(`[Worker] Started listening on BullMQ queue: "${EVENT_QUEUE_NAME}" with concurrency: 5`);
   
   return worker;
 };

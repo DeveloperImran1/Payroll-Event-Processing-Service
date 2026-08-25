@@ -11,6 +11,7 @@ router.post(
   EventControllers.createEvent
 );
 
+router.get('/', EventControllers.getAllEvents);
 router.get('/:id', EventControllers.getEvent);
 
 export const EventRoutes = router;

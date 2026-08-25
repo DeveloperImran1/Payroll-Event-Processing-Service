@@ -34,7 +34,16 @@ const createEventIntoDB = async (payload: any) => {
 
 const getEventFromDB = async (id: string) => {
   const result = await prisma.event.findUnique({
-    where: { id },
+    where: {
+      id,
+    },
+  });
+  return result;
+};
+
+const getAllEventsFromDB = async () => {
+  const result = await prisma.event.findMany({
+    orderBy: { createdAt: 'desc' },
   });
   return result;
 };
@@ -42,4 +51,5 @@ const getEventFromDB = async (id: string) => {
 export const EventServices = {
   createEventIntoDB,
   getEventFromDB,
+  getAllEventsFromDB,
 };

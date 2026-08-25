@@ -15,7 +15,7 @@ const createEvent = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getEvent = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const result = await EventServices.getEventFromDB(id);
 
   if (!result) {
@@ -35,7 +35,19 @@ const getEvent = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllEvents = catchAsync(async (req: Request, res: Response) => {
+  const result = await EventServices.getAllEventsFromDB();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Events fetched successfully',
+    data: result,
+  });
+});
+
 export const EventControllers = {
   createEvent,
   getEvent,
+  getAllEvents,
 };

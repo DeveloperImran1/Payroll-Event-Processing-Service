@@ -11,6 +11,8 @@ services:
       - '5433:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - payroll-network
 
   redis:
     image: redis:7-alpine
@@ -20,7 +22,56 @@ services:
       - '6379:6379'
     volumes:
       - redisdata:/data
+    networks:
+      - payroll-network
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: payroll-backend
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./server/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/payroll_db?schema=public
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    networks:
+      - payroll-network
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: payroll-frontend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_BASE_API_URL=http://localhost:5000/api/v1
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - payroll-network
 
 volumes:
   pgdata:
   redisdata:
+
+networks:
+  payroll-network:
+    driver: bridge

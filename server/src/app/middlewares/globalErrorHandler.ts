@@ -18,7 +18,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     message = 'Validation Error';
     errorSources = err.issues.map((issue) => {
       return {
-        path: issue.path[issue.path.length - 1],
+        path: String(issue.path[issue.path.length - 1] ?? ''),
         message: issue.message,
       };
     });
