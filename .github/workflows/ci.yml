@@ -63,7 +63,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/payroll_db?schema=public
         run: |
           npx prisma generate
-          npx prisma db push --skip-generate
+          npx prisma db push --accept-data-loss
 
       - name: Run Backend Automated Tests (Jest & Supertest)
         working-directory: ./server

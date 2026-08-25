@@ -24,22 +24,22 @@ The service decouples synchronous HTTP request ingestion from heavy, slow, or po
 
 ```mermaid
 flowchart TD
-    Client(["🌐 Client / Frontend (Next.js)"]) -->|1. POST /api/v1/events| API["⚡ Express API Producer"]
-    API -->|2. Validate (Zod) & Persist PENDING| DB[("🗄️ PostgreSQL (Prisma)")]
-    API -->|3. Enqueue Job| RedisQueue[("🔴 Redis / BullMQ Queue")]
-    API -->|4. Return 202 Accepted| Client
+    Client["🌐 Client / Frontend (Next.js)"] -->|"1. POST /api/v1/events"| API["⚡ Express API Producer"]
+    API -->|"2. Validate (Zod) & Persist PENDING"| DB[("🗄️ PostgreSQL Database")]
+    API -->|"3. Enqueue Job"| RedisQueue[("🔴 Redis / BullMQ Queue")]
+    API -->|"4. Return 202 Accepted"| Client
 
-    subgraph Background Processing Cluster
-        Worker["⚙️ BullMQ Worker Consumer (Concurrency: 5)"] -->|5. Poll Job| RedisQueue
-        Worker -->|6. Check Employee Predecessor / Order| DB
-        Worker -->|7. Mark Status: PROCESSING| DB
-        Worker -->|8. Simulate External Payroll Provider| ExternalProvider["🏢 Simulated External Payroll System"]
-        Worker -->|9a. SUCCESS: Mark Complete| DB
-        Worker -->|9b. TRANSIENT ERROR: Exponential Retry| RedisQueue
-        Worker -->|9c. PERMANENT ERROR: Mark FAILED| DB
+    subgraph Background_Cluster ["Background Processing Cluster"]
+        Worker["⚙️ BullMQ Worker Consumer (Concurrency: 5)"] -->|"5. Poll Job"| RedisQueue
+        Worker -->|"6. Check Employee Predecessor / Order"| DB
+        Worker -->|"7. Mark Status: PROCESSING"| DB
+        Worker -->|"8. Simulate External Payroll Provider"| ExternalProvider["🏢 Simulated External Payroll System"]
+        Worker -->|"9a. SUCCESS: Mark Complete"| DB
+        Worker -->|"9b. TRANSIENT ERROR: Exponential Retry"| RedisQueue
+        Worker -->|"9c. PERMANENT ERROR: Mark FAILED"| DB
     end
 
-    Client -->|10. GET /api/v1/events (Real-time Polling)| API
+    Client -->|"10. GET /api/v1/events (Real-time Polling)"| API
 ```
 
 ---
